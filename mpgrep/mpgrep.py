@@ -16,11 +16,16 @@ def parse():
         else:
             raise argparse.ArgumentTypeError(f"Invalid value: {arg}")
 
-
     parser = argparse.ArgumentParser(
         description="Download CIF files from Materials Project using the new REST API."
     )
-    parser.add_argument("input", type=is_valid_string_or_file, help="The Materials Project compound ID (e.g., 'mp-149') or the path to a file containing a list of IDs.", nargs="?", default=None)
+    parser.add_argument(
+        "input",
+        type=is_valid_string_or_file,
+        help="The Materials Project compound ID (e.g., 'mp-149') or the path to a file containing a list of IDs.",
+        nargs="?",
+        default=None,
+    )
     parser.add_argument(
         "-p", dest="primitive", action="store_true", help="Outputs the primitive cell."
     )
@@ -59,7 +64,9 @@ if __name__ == "__main__":
             sys.exit(0)
 
     if not args.input:
-        print("Please provide an input (either a Materials Project ID or a file containing ID(s).")
+        print(
+            "Please provide an input (either a Materials Project ID or a file containing ID(s)."
+        )
         sys.exit(0)
 
     # Connect to the MP API
@@ -74,19 +81,24 @@ if __name__ == "__main__":
             # Assume a single ID was given as input
             ids = [args.input]
 
+        # Fetch all structures
+        structures = mpr.get_structures(ids)
+
+        # Print structures which could not be found
         for id in ids:
-            print(f"Fetching {id} ...")
+            if id not in [structure.mp_id for structure in structures]:
+                print(f"Could not find structure with ID {id}.")
 
-            structure = mpr.get_structure_by_material_id(id)
-            if structure == []:
-                print(f"Could not find structure {id}.")
-                continue
-
+        for structure in structures:
             sga = SpacegroupAnalyzer(structure)
 
             if args.primitive:
                 sym_structure = sga.get_primitive_standard_structure()
-                sym_structure.to(filename=f"{id}.cif")
+                print(f"Writing {structure.mp_id}.cif ...")
+                sym_structure.to(filename=f"{structure.mp_id}.cif")
             else:
                 sym_structure = sga.get_conventional_standard_structure()
-                CifWriter(struct=sym_structure, symprec=1e-5).write_file(f"{id}.cif")
+                print(f"Writing {structure.mp_id}.cif ...")
+                CifWriter(struct=sym_structure, symprec=1e-5).write_file(
+                    f"{structure.mp_id}.cif"
+                )
