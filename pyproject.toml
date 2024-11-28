@@ -1,0 +1,34 @@
+# [build-system]
+# requires = ["setuptools", "setuptools_scm[toml"]
+# build-backend = "setuptools.build_meta"
+
+[project]
+name = "mpgrep"
+# dynamic = ["version"]
+description = "A tool for retrieving structure information (.cif) files from the Materials Project database."
+authors = [
+{ name = "Leopold Seidler", email = "seidler@thch.uni-bonn.de"}
+]
+maintainers = [
+{ name = "Leopold Seidler", email = "seidler@thch.uni-bonn.de"}
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["chemistry", "materials science", "materials", "materials project", "MP", "structure search"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "LIcense :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
+]
+dependencies = ["mp-api", "pymatgen"]
+requires-pythen = ">=3.10"
+
+[project.scripts]
+mpgrep = "mpgrep:mpgrep"
+
+[tool.setuptools_scm]
+version_file = "src/mpgrep/__version__.py"
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+pythonpath = ["src"]
