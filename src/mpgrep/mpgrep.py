@@ -39,7 +39,7 @@ def parse():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def entry_point():
     # Parse cml args
     args = parse()
 
