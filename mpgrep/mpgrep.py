@@ -82,23 +82,25 @@ if __name__ == "__main__":
             ids = [args.input]
 
         # Fetch all structures
-        structures = mpr.get_structures(ids)
+        data = mpr.materials.search(
+            material_ids=ids, fields=["structure", "material_id"]
+        )
 
         # Print structures which could not be found
         for id in ids:
-            if id not in [structure.mp_id for structure in structures]:
+            if id not in [data_point.material_id for data_point in data]:
                 print(f"Could not find structure with ID {id}.")
 
-        for structure in structures:
-            sga = SpacegroupAnalyzer(structure)
+        for data_point in data:
+            sga = SpacegroupAnalyzer(data_point.structure)
 
             if args.primitive:
                 sym_structure = sga.get_primitive_standard_structure()
-                print(f"Writing {structure.mp_id}.cif ...")
-                sym_structure.to(filename=f"{structure.mp_id}.cif")
+                print(f"Writing {data_point.material_id}.cif ...")
+                sym_structure.to(filename=f"{data_point.material_id}.cif")
             else:
                 sym_structure = sga.get_conventional_standard_structure()
-                print(f"Writing {structure.mp_id}.cif ...")
+                print(f"Writing {data_point.material_id}.cif ...")
                 CifWriter(struct=sym_structure, symprec=1e-5).write_file(
-                    f"{structure.mp_id}.cif"
+                    f"{data_point.material_id}.cif"
                 )
