@@ -5,6 +5,7 @@ import sys
 from mp_api.client import MPRester
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.cif import CifWriter
+from pymatgen.io.xyz import XYZ
 
 try:
     from .__version__ import __version__
@@ -23,7 +24,7 @@ def parse():
 
     parser = argparse.ArgumentParser(
         prog="mpgrep",
-        description="Download CIF files from Materials Project using the new REST API.",
+        description="Download CIF files or XYZ supercells from Materials Project using the new REST API.",
     )
     parser.add_argument(
         "input",
@@ -36,6 +37,9 @@ def parse():
         "-p", dest="primitive", action="store_true", help="Outputs the primitive cell."
     )
     parser.add_argument("--key", type=str, help="Stores your API key.")
+    parser.add_argument(
+        "--supercell", type=int, nargs=3, metavar=("NX","NY","NZ"), help="Supercell size along each axis; triggers XYZ output (e.g., --supercell 2 2 2)."
+    )
     return parser.parse_args()
 
 
@@ -100,13 +104,25 @@ def entry_point():
         for data_point in data:
             sga = SpacegroupAnalyzer(data_point.structure)
 
+            # Get standard cell based on primitive flag
             if args.primitive:
                 sym_structure = sga.get_primitive_standard_structure()
-                print(f"Writing {data_point.material_id}.cif ...")
-                sym_structure.to(filename=f"{data_point.material_id}.cif")
             else:
                 sym_structure = sga.get_conventional_standard_structure()
+
+            # If supercell requested, output XYZ with supercell
+            if args.supercell:
+                nx, ny, nz = args.supercell
+                if nx != 1 or ny != 1 or nz != 1:
+                    sym_structure.make_supercell([[nx, 0, 0], [0, ny, 0], [0, 0, nz]])
+                print(f"Writing {data_point.material_id}.xyz ...")
+                XYZ(sym_structure).write_file(f"{data_point.material_id}.xyz")
+            else:
+                # Write CIF file
                 print(f"Writing {data_point.material_id}.cif ...")
-                CifWriter(struct=sym_structure, symprec=1e-5).write_file(
-                    f"{data_point.material_id}.cif"
-                )
+                if args.primitive:
+                    sym_structure.to(filename=f"{data_point.material_id}.cif")
+                else:
+                    CifWriter(struct=sym_structure, symprec=1e-5).write_file(
+                        f"{data_point.material_id}.cif"
+                    )
