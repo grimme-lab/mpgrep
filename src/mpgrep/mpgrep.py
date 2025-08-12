@@ -2,10 +2,6 @@ import argparse
 import configparser
 import os
 import sys
-from mp_api.client import MPRester
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.cif import CifWriter
-from pymatgen.io.xyz import XYZ
 
 try:
     from .__version__ import __version__
@@ -38,7 +34,11 @@ def parse():
     )
     parser.add_argument("--key", type=str, help="Stores your API key.")
     parser.add_argument(
-        "--supercell", type=int, nargs=3, metavar=("NX","NY","NZ"), help="Supercell size along each axis; triggers XYZ output (e.g., --supercell 2 2 2)."
+        "--supercell",
+        type=int,
+        nargs=3,
+        metavar=("NX", "NY", "NZ"),
+        help="Supercell size along each axis; triggers XYZ output (e.g., --supercell 2 2 2).",
     )
     return parser.parse_args()
 
@@ -46,6 +46,11 @@ def parse():
 def entry_point():
     # Parse cml args
     args = parse()
+
+    from mp_api.client import MPRester
+    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+    from pymatgen.io.cif import CifWriter
+    from pymatgen.io.xyz import XYZ
 
     # Setup the configuration
     config = configparser.ConfigParser()
